@@ -1,0 +1,1 @@
+{"id":"1764365972160","nome":"Victor Levi Vasconcelos Ramos","cpf_cnpj":"52323409808","cep":"11712000","email":"victorleviramos9@gmail.com","senha":"20112007_vi","rua":"Avenida Milton de Oliveira","numero":"1002","bairro":"Melvi","cidade":"Praia Grande","estado":"SP","celular":"13996913804","created_at":"2025-11-28T22:39:32+01:00"}

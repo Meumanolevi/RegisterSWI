@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Consulta de Funcionários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Consulta de Funcionários</h3>
+        <a class="btn btn-outline-secondary" href="../index.html">Voltar</a>
+      </div>
+
+      <div id="root"></div>
+    </div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+      function App(){
+        const [q,setQ] = useState('')
+        const [data,setData] = useState([])
+        const [loading,setLoading] = useState(true)
+
+        useEffect(()=>{
+          fetch('../../backend/list.php?type=employee')
+            .then(r=>r.json())
+            .then(j=>{ if (j.success) setData(j.data||[]); setLoading(false) })
+            .catch(()=>setLoading(false))
+        },[])
+
+        const filtered = data.filter(s => (s.nome||'').toLowerCase().includes(q.toLowerCase()) || (s.cpf||s.cpf_cnpj||'').includes(q) || (s.cargo||'').toLowerCase().includes(q.toLowerCase()))
+
+        return (
+          <>
+            <div className="mb-3 d-flex gap-2">
+              <input className="form-control" placeholder="Buscar por nome, CPF ou cargo" value={q} onChange={e=>setQ(e.target.value)} />
+              <a className="btn btn-primary" href="../register/employeeRegister.html">Novo Funcionário</a>
+            </div>
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead><tr><th>Nome</th><th>CPF</th><th>Cargo</th><th></th></tr></thead>
+                <tbody>{loading ? <tr><td colSpan="4" className="text-center">Carregando...</td></tr> : (filtered.length===0 ? <tr><td colSpan="4" className="text-center">Nenhum registro</td></tr> : filtered.map(r=> <tr key={r.id}><td>{r.nome}</td><td>{r.cpf || r.cpf_cnpj}</td><td>{r.cargo}</td><td><a className="btn btn-sm btn-outline-primary" href={`employeeRegister.html?id=${r.id}`}>Editar</a></td></tr>))}</tbody>
+              </table>
+            </div>
+          </>
+        )
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

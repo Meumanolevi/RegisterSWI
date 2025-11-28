@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cadastro de Usuário</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html"><i class="bi bi-arrow-left-circle me-2"></i>Voltar</a>
+      </div>
+    </nav>
+
+    <main class="container mt-4 mb-5">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h2 class="card-title mb-3">Cadastro de Usuário</h2>
+              <p class="text-muted">Crie um usuário para acessar o sistema.</p>
+
+              <form id="userForm" action="../../backend/register_user.php" method="POST" class="needs-validation" novalidate>
+                <div class="mb-3">
+                  <label for="username" class="form-label">Usuário</label>
+                  <input type="text" class="form-control" id="username" name="username" required>
+                  <div class="invalid-feedback">Informe o nome de usuário.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label">E-mail</label>
+                  <input type="email" class="form-control" id="email" name="email" required>
+                  <div class="invalid-feedback">Informe um e-mail válido.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="senha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="senha" name="senha" minlength="6" required>
+                  <div class="invalid-feedback">Informe uma senha com pelo menos 6 caracteres.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="role" class="form-label">Função</label>
+                  <select id="role" name="role" class="form-select">
+                    <option value="user">Usuário</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+
+                <div id="formAlert" aria-live="polite"></div>
+
+                <div class="d-flex gap-2">
+                  <button type="submit" class="btn btn-primary">Cadastrar</button>
+                  <a class="btn btn-secondary" href="../index.html">Cancelar</a>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function(){
+        const form = document.getElementById('userForm')
+        const alertDiv = document.getElementById('formAlert')
+        function showAlert(m,t='danger'){ alertDiv.innerHTML = `<div class="alert alert-${t} mt-3">${m}</div>` }
+        form.addEventListener('submit', async (e)=>{
+          e.preventDefault(); e.stopPropagation();
+          if(!form.checkValidity()){ form.classList.add('was-validated'); showAlert('Corrija os campos.'); return }
+          try{
+            const res = await fetch(form.action, { method: 'POST', body: new FormData(form) })
+            if(!res.ok){ showAlert('Erro no servidor.'); return }
+            const data = await res.json(); if(!data.success){ showAlert(data.message||'Erro'); return }
+            showAlert(data.message||'Usuário cadastrado!', 'success'); form.reset(); form.classList.remove('was-validated');
+            setTimeout(()=>{ window.location.href = '../index.html' }, 1000)
+          }catch(err){ console.error(err); showAlert('Erro interno.') }
+        })
+      })()
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

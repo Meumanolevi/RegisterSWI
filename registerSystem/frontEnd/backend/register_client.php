@@ -51,18 +51,65 @@ function is_valid_cnpj($cnpj){
     return true;
 }
 
-$cpf_cnpj = isset($_POST['cpf_cnpj']) ? trim($_POST['cpf_cnpj']) : '';
+// collect expected fields from form
+$fields = ['nome','cpf_cnpj','cep','email','senha','rua','numero','bairro','cidade','estado','celular'];
+$data = [];
+foreach ($fields as $f){
+    $data[$f] = isset($_POST[$f]) ? trim($_POST[$f]) : '';
+}
 
-if ($cpf_cnpj === '') respond(false, 'CPF/CNPJ é obrigatório.', ['cpf_cnpj' => 'Informe CPF ou CNPJ.']);
+if ($data['cpf_cnpj'] === '') respond(false, 'CPF/CNPJ é obrigatório.', ['cpf_cnpj' => 'Informe CPF ou CNPJ.']);
 
-$digits = only_digits($cpf_cnpj);
+$digits = only_digits($data['cpf_cnpj']);
 if (strlen($digits) === 11) {
     if (!is_valid_cpf($digits)) respond(false, 'CPF inválido.', ['cpf_cnpj' => 'CPF inválido.']);
-    respond(true, 'CPF válido.');
 } elseif (strlen($digits) === 14) {
     if (!is_valid_cnpj($digits)) respond(false, 'CNPJ inválido.', ['cpf_cnpj' => 'CNPJ inválido.']);
-    respond(true, 'CNPJ válido.');
 } else {
     respond(false, 'CPF ou CNPJ com tamanho inválido.', ['cpf_cnpj' => 'CPF/CNPJ deve ter 11 (CPF) ou 14 (CNPJ) dígitos.']);
 }
+
+// basic validation for required fields
+if ($data['nome'] === '') respond(false, 'Nome é obrigatório.', ['nome' => 'Informe o nome.']);
+if ($data['email'] === '') respond(false, 'E-mail é obrigatório.', ['email' => 'Informe o e-mail.']);
+
+// prepare record (store CPF/CNPJ digits-only)
+$record = [
+    'id' => time() . rand(100,999),
+    'nome' => $data['nome'],
+    'cpf_cnpj' => only_digits($data['cpf_cnpj']),
+    'cep' => only_digits($data['cep']),
+    'email' => $data['email'],
+    'senha' => $data['senha'],
+    'rua' => $data['rua'],
+    'numero' => $data['numero'],
+    'bairro' => $data['bairro'],
+    'cidade' => $data['cidade'],
+    'estado' => $data['estado'],
+    'celular' => only_digits($data['celular']),
+    'created_at' => date('c')
+];
+
+$file = __DIR__ . '/../cadastros/cadastroClient.txt';
+$json = json_encode($record, JSON_UNESCAPED_UNICODE);
+if ($json === false) respond(false, 'Erro ao serializar dados.');
+
+// append as JSON line with locking
+if (!is_dir(dirname($file))) {
+    if (!mkdir(dirname($file), 0777, true)) respond(false, 'Não foi possível criar pasta de cadastros.');
+}
+
+$fp = fopen($file, 'a');
+if (!$fp) respond(false, 'Não foi possível abrir arquivo de cadastro para escrita.');
+if (flock($fp, LOCK_EX)){
+    fwrite($fp, $json . PHP_EOL);
+    fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+    respond(true, 'Cadastro de cliente efetuado com sucesso.');
+} else {
+    fclose($fp);
+    respond(false, 'Falha ao travar arquivo de cadastro. Tente novamente.');
+}
+
 ?>
